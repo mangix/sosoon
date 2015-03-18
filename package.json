@@ -1,24 +1,25 @@
 {
-  "name": "sosoon",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "browserify": "^9.0.3",
-    "hammerjs": "^2.0.4"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mangix/sosoon.git"
-  },
-  "author": "mangix",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mangix/sosoon/issues"
-  },
-  "homepage": "https://github.com/mangix/sosoon"
+    "name": "sosoon",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "dependencies": {
+        "browserify": "^9.0.3",
+        "hammerjs": "^2.0.4"
+    },
+    "devDependencies": {},
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "browserify"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mangix/sosoon.git"
+    },
+    "author": "mangix",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mangix/sosoon/issues"
+    },
+    "homepage": "https://github.com/mangix/sosoon"
 }
