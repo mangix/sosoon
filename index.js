@@ -43,7 +43,7 @@ define("leftIn", {
     properties: {
         left: "0"
     },
-    duration: 400,
+    duration: 300,
     easing: "ease-in-out"
 });
 },{}],2:[function(require,module,exports){
@@ -273,20 +273,21 @@ exports.create = function () {
         },
         end: function () {
             var self = this;
+            maxZ++;
             if (!((direction == 0 && this.isNextReady()) || (direction == 1 && this.isPrevReady()))) {
                 return;
             }
 
             (direction == 0 ? stack[current + 1] : stack[current - 1]).el.animate({
                 top: 0
-            }, 400, function () {
+            }, 300, function () {
                 self[direction == 0 ? "next" : "prev"]();
             });
 
             var pre = stack[current];
             pre.el.animate({
-                scale: 0
-            }, 400, function () {
+                scale: 0.5
+            }, 300, function () {
                 pre.exit();
             });
 
@@ -299,9 +300,9 @@ exports.create = function () {
                 next.el.get(0).style.webkitTransform = '';
                 next.el.css({
                     "top": window.innerHeight - deltaY,
-                    "z-index": ++maxZ
+                    "z-index": maxZ
                 });
-                stack[current].scale(1 - deltaY / window.innerHeight, true);
+                stack[current].scale(1 - deltaY / window.innerHeight/2, true);
             }
         },
         down: function (deltaY) {
@@ -311,9 +312,9 @@ exports.create = function () {
                 prev.el.get(0).style.webkitTransform = '';
                 prev.el.css({
                     "top": deltaY - window.innerHeight,
-                    "z-index": ++maxZ
+                    "z-index": maxZ
                 });
-                stack[current].scale(1 - deltaY / window.innerHeight);
+                stack[current].scale(1 - deltaY / window.innerHeight/2);
             }
         },
         isNextReady: function () {
@@ -2813,9 +2814,14 @@ module.exports = function (templateId, options) {
     if (!PageManager.hasPage()) {
         return;
     }
+    $(document.body).on("touchstart touchmove touchend",function(e){
+        e.preventDefault();
+    });
 
     PageManager.start(function () {
         stopLoading();
+
+
 
 
         //绑定
@@ -2823,11 +2829,9 @@ module.exports = function (templateId, options) {
 //        hammer.get("pan").set({"direction": Hammer.DIRECTION_VERTICAL});
 
         hammer.on("pandown", function (e) {
-            console.log("down")
             PageManager.down(e.distance);
         });
         hammer.on("panup", function (e) {
-            console.log("up")
             PageManager.up(e.distance);
         });
         hammer.on("panend", function () {
