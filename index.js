@@ -1,26 +1,30 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var definedAnimations = {};
 
+
 var define = function (name, options) {
     var params = [];
     params.push(options.properties);
     if (options.duration) {
         params.push(options.duration);
     }
-    if (params.easing) {
+    if (options.easing) {
         params.push(options.easing);
     }
 
-    definedAnimations[name] = {
+    var Animate = definedAnimations[name] = function () {
+        this.params = params.slice(0);
+    };
+    Animate.prototype = {
         start: function (el) {
             el = $(el);
             this.origin(el);
-            el.animate.apply(el, params);
+            el.animate.apply(el, this.params);
         },
         //add complete cb
         complete: function (fn) {
-            if (typeof params[params.length - 1] != "function") {
-                params.push(fn);
+            if (typeof this.params[this.params.length - 1] != "function") {
+                this.params.push(fn);
             }
         },
         origin: function (el) {
@@ -32,7 +36,11 @@ var define = function (name, options) {
     }
 };
 
-module.exports = definedAnimations;
+module.exports = function (name) {
+    if (definedAnimations[name]) {
+        return new definedAnimations[name]();
+    }
+};
 
 define("leftIn", {
     origin: {
@@ -45,6 +53,79 @@ define("leftIn", {
     },
     duration: 300,
     easing: "ease-in-out"
+});
+
+define("rightIn", {
+    origin: {
+        "right": "-100%",
+        "top": 0,
+        "position": "absolute"
+    },
+    properties: {
+        right: 0
+    },
+    duration: 300,
+    easing: "ease-in-out"
+});
+
+define("fadeIn", {
+    origin: {
+        "opacity": 0
+    },
+    properties: {
+        opacity: 1
+    },
+    duration: 1000,
+    easing: "ease-in"
+});
+
+define("tftr", {
+    origin: {
+        "opacity": 0,
+        right: 30
+    },
+    properties: {
+        opacity: 1,
+        right: -20
+    },
+    duration: 600,
+    easing: "ease-out"
+});
+define("tfri", {
+    origin: {
+        "opacity": 0,
+        right: -50
+    },
+    properties: {
+        opacity: 1,
+        right: -25
+    },
+    duration: 600,
+    easing: "ease-out"
+});
+define("tpop1", {
+    origin: {
+        "opacity": 0,
+        top: 30
+    },
+    properties: {
+        opacity: 1,
+        top: 10
+    },
+    duration: 600,
+    easing: "ease-out"
+});
+define("tpop2", {
+    origin: {
+        "opacity": 0,
+        top: 50
+    },
+    properties: {
+        opacity: 1,
+        top: 20
+    },
+    duration: 600,
+    easing: "ease-out"
 });
 },{}],2:[function(require,module,exports){
 var Chain = function () {
@@ -88,7 +169,7 @@ var ChainItem = function (el, animate, type) {
 exports.Chain = Chain;
 exports.ChainItem = ChainItem;
 },{}],3:[function(require,module,exports){
-var ATTR_CHAIN_GROUP = "chain-group";
+var ATTR_CHAIN_GROUP = "group";
 var ATTR_CHAIN_INDEX = "chain";
 var ATTR_ANIMATE = "animate";
 var ATTR_SRC = "img-src";
@@ -128,6 +209,7 @@ exports.create = function (template) {
             if (preparing) {
                 return;
             }
+            this.exit();
             preparing = true;
             var self = this;
             if (imageToLoad <= 0) {
@@ -148,7 +230,7 @@ exports.create = function (template) {
 
                 //如果animation是static,就直接插入dom
 //                if ($(item).attr(ATTR_ANIMATE) == "static") {
-                $('<img src="' + src + '" width="100%" height="100%" />').appendTo(item);
+                $('<img src="' + src + '" width="100%" height="auto" />').appendTo(item);
 //                }
             });
         },
@@ -181,7 +263,7 @@ function findChain(items) {
 
             chains[g].push({
                 index: c,
-                item: new Chain.ChainItem(item, animations[item.attr(ATTR_ANIMATE)], type)
+                item: new Chain.ChainItem(item, animations(item.attr(ATTR_ANIMATE)), type)
             });
         }
     });

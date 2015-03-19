@@ -6,6 +6,7 @@
 .so-container {
     position: relative;
     overflow: hidden;
+    color:#000;
 }
 
 .so-page {
@@ -14,15 +15,41 @@
     position: absolute;
     left: 0;
     top: 0;
-    background: #000;
-
+    background: #fff;
+    display: -webkit-box;
+    display: box;
+    -webkit-box-orient:vertical;
 }
 
 .so-item {
     position: relative;
-
+    overflow: hidden;
 }
 
 .so-item.full {
     height: 100%;
 }
+
+.so-h-auto{
+    -webkit-box-flex:1;
+}
+
+.so-text-tiny{
+    font-size:16px;
+}
+.so-text-mid{
+    font-size: 22px;
+}
+.so-text-large{
+    font-size:32px;
+}
+.so-text-huge{
+    font-size:42px;
+}
+.so-v{
+    -webkit-transform:rotate(90deg);
+}
+.so-center{
+    text-align: center;
+}
+
