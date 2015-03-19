@@ -7,6 +7,7 @@
     position: relative;
     overflow: hidden;
     color:#000;
+    font-size:12px;
 }
 
 .so-page {
@@ -20,10 +21,18 @@
     display: box;
     -webkit-box-orient:vertical;
 }
+.so-box{
+    display: -webkit-box;
+    display: box;
+}
 
 .so-item {
     position: relative;
     overflow: hidden;
+}
+.so-img{
+    width:100%;
+    height: auto;
 }
 
 .so-item.full {
@@ -52,4 +61,5 @@
 .so-center{
     text-align: center;
 }
+
 

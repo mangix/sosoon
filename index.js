@@ -54,6 +54,29 @@ define("leftIn", {
     duration: 300,
     easing: "ease-in-out"
 });
+define("rightIn", {
+    origin: {
+        "right": "-100%",
+        "top": 0,
+        "position": "absolute"
+    },
+    properties: {
+        right: 0
+    },
+    duration: 300,
+    easing: "ease-in-out"
+});
+define("topIn", {
+    origin: {
+        "top": '-100%',
+        "position": "absolute"
+    },
+    properties: {
+        top: "0"
+    },
+    duration: 300,
+    easing: "ease-in-out"
+});
 
 define("rightIn", {
     origin: {
@@ -127,6 +150,18 @@ define("tpop2", {
     duration: 600,
     easing: "ease-out"
 });
+define("tpop3", {
+    origin: {
+        "opacity": 0,
+        top: 60
+    },
+    properties: {
+        opacity: 1,
+        top: 30
+    },
+    duration: 600,
+    easing: "ease-out"
+});
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
@@ -151,7 +186,7 @@ Chain.prototype.next = function () {
         self.index++;
         self.next();
     });
-    chainItem.animate.start(chainItem.type == "img" ? chainItem.el.find("img") : chainItem.el);
+    chainItem.animate.start(chainItem.type == "img" ? chainItem.el.find(".so-img") : chainItem.el);
 };
 
 Chain.prototype.add = function (chainItem) {
@@ -171,7 +206,7 @@ exports.ChainItem = ChainItem;
 },{}],3:[function(require,module,exports){
 var ATTR_CHAIN_GROUP = "group";
 var ATTR_CHAIN_INDEX = "chain";
-var ATTR_ANIMATE = "animate";
+var ATTR_ANIMATE = "anim";
 var ATTR_SRC = "img-src";
 var ATTR_TYPE = "type";
 
@@ -209,7 +244,6 @@ exports.create = function (template) {
             if (preparing) {
                 return;
             }
-            this.exit();
             preparing = true;
             var self = this;
             if (imageToLoad <= 0) {
@@ -218,7 +252,7 @@ exports.create = function (template) {
             }
             //加载IMG
             images.each(function (i, item) {
-                var src = $(item).attr(ATTR_SRC)
+                var src = $(item).attr(ATTR_SRC);
                 var image = new Image();
                 image.src = src;
                 image.onload = image.onload = function () {
@@ -229,15 +263,14 @@ exports.create = function (template) {
                 };
 
                 //如果animation是static,就直接插入dom
-//                if ($(item).attr(ATTR_ANIMATE) == "static") {
-                $('<img src="' + src + '" width="100%" height="auto" />').appendTo(item);
-//                }
+                $('<img class="so-img" src="'+src+'" />').appendTo(item);
             });
         },
 
         doReady: function (cb) {
             this.ready = true;
             preparing = false;
+            this.exit();
             cb && cb();
         },
         scale: function (x, isTop) {
@@ -255,15 +288,16 @@ function findChain(items) {
         item = $(item);
         var g = item.attr(ATTR_CHAIN_GROUP);
         var c = item.attr(ATTR_CHAIN_INDEX);
+        var a = item.attr(ATTR_ANIMATE);
         var type = item.attr(ATTR_TYPE) || "";
-        if (g && c) {
+        if (g && c && a) {
             if (!chains[g]) {
                 chains[g] = [];
             }
 
             chains[g].push({
                 index: c,
-                item: new Chain.ChainItem(item, animations(item.attr(ATTR_ANIMATE)), type)
+                item: new Chain.ChainItem(item, animations(a), type)
             });
         }
     });
