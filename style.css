@@ -8,6 +8,7 @@
     overflow: hidden;
     color:#000;
     font-size:12px;
+    letter-spacing: 3px;
 }
 
 .so-page {
@@ -60,6 +61,18 @@
 }
 .so-center{
     text-align: center;
+}
+
+.so-b-text{
+    background: #000;
+    opacity: 0.8;
+    color:#fff;
+    font-size:22px;
+    position: absolute;
+    top:40%;
+    right: 0;
+    width:180px;
+    padding:10px;
 }
 
 

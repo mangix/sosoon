@@ -162,6 +162,20 @@ define("tpop3", {
     duration: 600,
     easing: "ease-out"
 });
+
+define("tfd", {
+    origin: {
+        "opacity": 0,
+        top: 10
+    },
+    properties: {
+        opacity: 1,
+        top: 30
+    },
+    duration: 600,
+    easing: "ease-out"
+});
+
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
