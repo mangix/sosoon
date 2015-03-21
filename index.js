@@ -16,20 +16,28 @@ var define = function (name, options) {
         this.params = params.slice(0);
     };
     Animate.prototype = {
-        start: function (el) {
+        start: function (el, indexOfChain, lengthOfChain) {
             el = $(el);
             this.origin(el);
-            el.animate.apply(el, this.params);
+            if (options.animate) {
+                options.animate.call(this, el, indexOfChain, lengthOfChain, this.cb);
+            } else {
+                el.animate.apply(el, this.params);
+            }
+
         },
         //add complete cb
         complete: function (fn) {
             if (typeof this.params[this.params.length - 1] != "function") {
                 this.params.push(fn);
+                this.cb = fn;
             }
         },
         origin: function (el) {
             el = $(el);
-            if (options.origin) {
+            if (options.origin && typeof options.origin === "function") {
+                options.origin.call(this, el);
+            } else {
                 el.css(options.origin);
             }
         }
@@ -51,7 +59,7 @@ define("leftIn", {
     properties: {
         left: "0"
     },
-    duration: 300,
+    duration: 600,
     easing: "ease-in-out"
 });
 define("rightIn", {
@@ -63,7 +71,7 @@ define("rightIn", {
     properties: {
         right: 0
     },
-    duration: 300,
+    duration: 600,
     easing: "ease-in-out"
 });
 define("topIn", {
@@ -74,7 +82,7 @@ define("topIn", {
     properties: {
         top: "0"
     },
-    duration: 300,
+    duration: 600,
     easing: "ease-in-out"
 });
 
@@ -87,7 +95,7 @@ define("rightIn", {
     properties: {
         right: 0
     },
-    duration: 300,
+    duration: 600,
     easing: "ease-in-out"
 });
 
@@ -176,6 +184,79 @@ define("tfd", {
     easing: "ease-out"
 });
 
+define("canvas-glass", {
+    origin: function (el) {
+        if (!this.canvas) {
+            this.canvas = $('<canvas width="' + window.innerWidth + '" height="' + window.innerHeight + '"></canvas>')
+                .appendTo(el).get(0);
+
+        }
+        var img = new Image();
+        img.src = el.attr('img-src');
+        var self = this;
+        var gc = this.gc = self.canvas.getContext("2d");
+
+        gc.clearRect(0, 0, self.canvas.width, self.canvas.height);
+
+        gc.drawImage(img, 0, 0, self.canvas.width, self.canvas.height);
+
+    },
+    animate: function () {
+        var gc = this.gc;
+        gc.lineCap = "round";
+        gc.lineJoin = "round";
+        gc.globalCompositeOperation = "destination-out";
+
+        gc.beginPath();
+        gc.moveTo(window.innerWidth / 2, window.innerHeight / 2);
+        gc.lineWidth = 50;
+        var w = window.innerWidth,
+            h = window.innerHeight;
+        var self = this;
+
+        var frameCount = 50;
+        var draw = function () {
+            if (frameCount--) {
+                var x = w / 4 + w / 2 * Math.random(),
+                    y = h / 4 + h / 2 * Math.random();
+                gc.lineTo(x, y);
+                gc.stroke();
+                requestAnimationFrame(draw);
+            } else {
+                $(self.canvas).animate({
+                    opacity: 0
+                }, 800, "ease-in", function () {
+                    self.canvas.parentNode.removeChild(self.canvas);
+                    self.canvas = null;
+                });
+
+            }
+        };
+
+        draw();
+
+
+    }
+});
+
+define("fly", {
+    origin: {
+        "-wetkit-transform": "rotate(0)",
+        left: '-100%',
+        top: '100%',
+        position: 'absolute'
+    },
+    animate: function (el, i, l, cb) {
+        var total = 20;//deg
+        var thisDeg = total - total / (l - 1) * i;
+        el.animate({
+            "rotate": thisDeg + "deg",
+            left: '10%',
+            top: '10%'
+        }, 300, 'ease-out', cb);
+    }
+});
+
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
@@ -184,7 +265,7 @@ var Chain = function () {
 
 Chain.prototype.origin = function () {
     this.stack.forEach(function (chainItem) {
-        chainItem.animate.origin(chainItem.type == "img" ? chainItem.el.find("img") : chainItem.el);
+        chainItem.animate.origin(chainItem.actualEl());
     });
 };
 
@@ -200,7 +281,7 @@ Chain.prototype.next = function () {
         self.index++;
         self.next();
     });
-    chainItem.animate.start(chainItem.type == "img" ? chainItem.el.find(".so-img") : chainItem.el);
+    chainItem.animate.start(chainItem.actualEl(), this.index, this.stack.length);
 };
 
 Chain.prototype.add = function (chainItem) {
@@ -214,6 +295,11 @@ var ChainItem = function (el, animate, type) {
     this.type = type;
 };
 
+ChainItem.prototype.actualEl = function () {
+    var img = this.el.find(".so-img");
+    return this.type == "img" && img.size() ? img : this.el;
+};
+
 
 exports.Chain = Chain;
 exports.ChainItem = ChainItem;
@@ -223,6 +309,8 @@ var ATTR_CHAIN_INDEX = "chain";
 var ATTR_ANIMATE = "anim";
 var ATTR_SRC = "img-src";
 var ATTR_TYPE = "type";
+var ATTR_AUTO = "auto";
+var ATTR_CLS = 'cls';
 
 var Chain = require("./chain");
 var animations = require("./animation");
@@ -277,7 +365,10 @@ exports.create = function (template) {
                 };
 
                 //如果animation是static,就直接插入dom
-                $('<img class="so-img" src="'+src+'" />').appendTo(item);
+                if ($(item).attr(ATTR_AUTO) != "false") {
+                    $('<img class="so-img '+($(item).attr(ATTR_CLS) || "")+'" src="' + src + '" />').appendTo(item);
+                }
+
             });
         },
 
@@ -332,19 +423,24 @@ function findChain(items) {
     return results;
 }
 },{"./animation":1,"./chain":2}],4:[function(require,module,exports){
-var Page = require("./page");
 var MAX_PAGE = 100;
 
 var maxZ = MAX_PAGE;
 
+var arrow = $('<div class="so-arrow"></div>');
+var loading = $('<div class="so-page-waiting">正在加载下一页..</div>');
+
 //显示下一页正在加载
 function playPageLoading() {
-
+    loading.appendTo(document.body);
+    arrow.remove();
 }
 
 function stopPageLoading() {
-
+    loading.remove();
+    arrow.appendTo(document.body);
 }
+
 
 exports.create = function () {
     var stack = [];
@@ -360,10 +456,18 @@ exports.create = function () {
         current = index;
         stack[index].entry();
 
-        if (stack[index + 1] && !stack[index + 1].ready) {
-            playPageLoading();
-            stack[index + 1].prepare(stopPageLoading);
+        if (stack[index + 1]) {
+            if (stack[index + 1].ready) {
+                stopPageLoading();
+            } else {
+                playPageLoading();
+                stack[index + 1].prepare(stopPageLoading);
+            }
+        }else{
+            stopPageLoading();
+            arrow.remove();
         }
+
 
         if (stack[index + 2] && !stack[index + 2].ready) {
             stack[index + 2].prepare();
@@ -432,7 +536,7 @@ exports.create = function () {
                     "top": window.innerHeight - deltaY,
                     "z-index": maxZ
                 });
-                stack[current].scale(1 - deltaY / window.innerHeight/2, true);
+                stack[current].scale(1 - deltaY / window.innerHeight / 2, true);
             }
         },
         down: function (deltaY) {
@@ -444,7 +548,7 @@ exports.create = function () {
                     "top": deltaY - window.innerHeight,
                     "z-index": maxZ
                 });
-                stack[current].scale(1 - deltaY / window.innerHeight/2);
+                stack[current].scale(1 - deltaY / window.innerHeight / 2);
             }
         },
         isNextReady: function () {
@@ -452,11 +556,14 @@ exports.create = function () {
         },
         isPrevReady: function () {
             return current > 0 && stack[current - 1].ready;
+        },
+        size:function(){
+            return stack.length
         }
     };
 };
 
-},{"./page":3}],5:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*! Hammer.JS - v2.0.4 - 2014-09-28
  * http://hammerjs.github.io/
  *
@@ -2939,19 +3046,22 @@ module.exports = function (templateId, options) {
 
     playLoading();
 
-    initAudio();
+    if(options.audio){
+        initAudio(options.audio);
+    }
+
 
     if (!PageManager.hasPage()) {
         return;
     }
+    console.log(PageManager.size())
     $(document.body).on("touchstart touchmove touchend",function(e){
         e.preventDefault();
     });
 
     PageManager.start(function () {
-        stopLoading();
 
-
+       stopLoading();
 
 
         //绑定
@@ -2971,19 +3081,32 @@ module.exports = function (templateId, options) {
 };
 
 //初始化背景音乐
-function initAudio() {
-
+function initAudio(url) {
+    var audio = $('<audio loop src="'+url+'"></audio>').appendTo(document.body).get(0);
+    var btn = $('<div class="so-music play"></div>').appendTo(document.body);
+    audio.play();
+    btn.on("click",function(){
+        if(!audio.paused){
+            audio.pause();
+            btn.removeClass('play');
+        }else{
+            audio.play();
+            btn.addClass('play');
+        }
+    });
 }
 
+var loading;
 //app 启动 loading
 function playLoading() {
-
+    loading = $('<div class="so-load-c full"><div class="so-page-loading"></div></div>').appendTo(document.body);
 }
 
 //停止app启动loading
 function stopLoading() {
-
+    loading.remove();
 }
+
 
 
 },{"./page":3,"./pagem":4,"hammerjs":5}]},{},[]);
