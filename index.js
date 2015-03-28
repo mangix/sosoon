@@ -510,7 +510,7 @@ exports.create = function () {
                 playPageLoading();
                 stack[index + 1].prepare(stopPageLoading);
             }
-        }else{
+        } else {
             stopPageLoading();
             arrow.remove();
         }
@@ -555,7 +555,7 @@ exports.create = function () {
         end: function () {
             var self = this;
             maxZ++;
-            if (!((direction == 0 && this.isNextReady()) || (direction == 1 && this.isPrevReady()))) {
+            if (direction == -1 || !((direction == 0 && this.isNextReady()) || (direction == 1 && this.isPrevReady()))) {
                 return;
             }
 
@@ -604,8 +604,11 @@ exports.create = function () {
         isPrevReady: function () {
             return current > 0 && stack[current - 1].ready;
         },
-        size:function(){
+        size: function () {
             return stack.length
+        },
+        wrong: function () {
+            direction = -1;
         }
     };
 };
@@ -3120,6 +3123,9 @@ module.exports = function (templateId, options) {
         hammer.on("panup", function (e) {
             PageManager.up(e.distance);
         });
+        hammer.on("panleft panright",function(){
+            PageManager.wrong();
+        })
         hammer.on("panend", function () {
             PageManager.end();
         });
