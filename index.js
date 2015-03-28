@@ -62,21 +62,11 @@ define("leftIn", {
     duration: 600,
     easing: "ease-in-out"
 });
-define("rightIn", {
-    origin: {
-        "right": "-100%",
-        "top": 0,
-        "position": "absolute"
-    },
-    properties: {
-        right: 0
-    },
-    duration: 600,
-    easing: "ease-in-out"
-});
+
 define("topIn", {
     origin: {
         "top": '-100%',
+        left:0,
         "position": "absolute"
     },
     properties: {
@@ -94,6 +84,19 @@ define("rightIn", {
     },
     properties: {
         right: 0
+    },
+    duration: 600,
+    easing: "ease-in-out"
+});
+
+define("bottomIn", {
+    origin: {
+        "top": '100%',
+        left:0,
+        "position": "absolute"
+    },
+    properties: {
+        top: 0
     },
     duration: 600,
     easing: "ease-in-out"
@@ -265,6 +268,42 @@ define("fly", {
     }
 });
 
+define("rollIn" , {
+    origin:{
+        "-webkit-transform":"rotate(0) scale(0)"
+    },
+    properties:{
+        "rotate":"360deg",
+        "scale":"1"
+    },
+    duration: 600
+});
+
+define("scaleIn" , {
+    origin:{
+        "-webkit-transform":"scale(2)",
+        opacity:0.3
+    },
+    properties:{
+        "scale":"1",
+        opacity:1
+    },
+    duration: 600,
+    easing:"ease-in"
+});
+
+define("scaleOut" , {
+    origin:{
+        "-webkit-transform":"scale(0.7)",
+        opacity:0.3
+    },
+    properties:{
+        "scale":"1",
+        opacity:1
+    },
+    duration: 600,
+    easing:"ease-in"
+});
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
@@ -3070,7 +3109,6 @@ module.exports = function (templateId, options) {
     PageManager.start(function () {
 
        stopLoading();
-
 
         //绑定
         var hammer = new Hammer(template.get(0));
