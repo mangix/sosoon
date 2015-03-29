@@ -10,7 +10,7 @@
     "devDependencies": {},
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "browserify -r ./lib/app.js:app > index.js"
+        "build": "browserify -r ./lib/app.js:app > index.js && uglifyjs index.js > index.min.js"
     },
     "repository": {
         "type": "git",
