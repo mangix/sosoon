@@ -564,6 +564,49 @@ exports.create = function () {
 };
 
 },{}],5:[function(require,module,exports){
+var config = {
+    "appid":'wx841a97238d9e17b2',
+    "img_url":'',
+    "img_width":"640",
+    "img_height":"640",
+    "link":'',
+    "desc":'',
+    "title":'',
+//    "timelineTitle":""
+};
+
+
+
+function bindShare(){
+    if(window.WeixinJSBridge){
+        binded = true;
+        //分享好友
+        WeixinJSBridge.on('menu:share:appmessage', function(argv){
+                //交给每个页面自己去控制要不要设置分享的具体内容
+                WeixinJSBridge.invoke('sendAppMessage',config, function(res) {});
+        });
+
+        //分享朋友圈
+        WeixinJSBridge.on('menu:share:timeline', function(argv){
+                WeixinJSBridge.invoke('shareTimeline',cfg, function(res) {});
+        });
+
+    }
+}
+bindShare();
+document.addEventListener('WeixinJSBridgeReady', bindShare, false);
+
+
+module.exports= {
+    config:function(mycfg){
+        for(var o in mycfg){
+            config[o] = mycfg[o];
+        }
+    },
+    __config__:config
+};
+
+},{}],6:[function(require,module,exports){
 /*! Hammer.JS - v2.0.4 - 2014-09-28
  * http://hammerjs.github.io/
  *
@@ -3034,8 +3077,15 @@ var Page = require("./page");
 var PageManager = require("./pagem").create();
 
 var PAGE_CLASS = ".so-page";
+var share = require('./share');
 
 module.exports = function (templateId, options) {
+    if(options.title && options.desc){
+        share.config({
+            title:options.title,
+            desc:options.desc
+        });
+    }
     var template = $($(templateId).text());
 
     template.appendTo(document.body).height(window.innerHeight);
@@ -3054,7 +3104,6 @@ module.exports = function (templateId, options) {
     if (!PageManager.hasPage()) {
         return;
     }
-    console.log(PageManager.size())
     $(document.body).on("touchstart touchmove touchend",function(e){
         e.preventDefault();
     });
@@ -3109,4 +3158,4 @@ function stopLoading() {
 
 
 
-},{"./page":3,"./pagem":4,"hammerjs":5}]},{},[]);
+},{"./page":3,"./pagem":4,"./share":5,"hammerjs":6}]},{},[]);
