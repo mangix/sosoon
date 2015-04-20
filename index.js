@@ -18,7 +18,7 @@ var define = function (name, options) {
     Animate.prototype = {
         start: function (el, indexOfChain, lengthOfChain) {
             el = $(el);
-            this.origin(el);
+//            this.origin(el);
             if (options.animate) {
                 options.animate.call(this, el, indexOfChain, lengthOfChain, this.cb);
             } else {
@@ -62,21 +62,11 @@ define("leftIn", {
     duration: 600,
     easing: "ease-in-out"
 });
-define("rightIn", {
-    origin: {
-        "right": "-100%",
-        "top": 0,
-        "position": "absolute"
-    },
-    properties: {
-        right: 0
-    },
-    duration: 600,
-    easing: "ease-in-out"
-});
+
 define("topIn", {
     origin: {
         "top": '-100%',
+        left:0,
         "position": "absolute"
     },
     properties: {
@@ -94,6 +84,19 @@ define("rightIn", {
     },
     properties: {
         right: 0
+    },
+    duration: 600,
+    easing: "ease-in-out"
+});
+
+define("bottomIn", {
+    origin: {
+        "top": '100%',
+        left:0,
+        "position": "absolute"
+    },
+    properties: {
+        top: 0
     },
     duration: 600,
     easing: "ease-in-out"
@@ -189,20 +192,27 @@ define("canvas-glass", {
         if (!this.canvas) {
             this.canvas = $('<canvas width="' + window.innerWidth + '" height="' + window.innerHeight + '"></canvas>')
                 .appendTo(el).get(0);
+            var src = el.attr('img-src');
+            this.img = new Image();
+            this.img.src = src;
+
+            this.preImg = $('<img src="' + src + '" width=100% height=auto style="position:absolute;left:0;top:0;z-index:100;"  />').appendTo(el);
 
         }
-        var img = new Image();
-        img.src = el.attr('img-src');
         var self = this;
-        var gc = this.gc = self.canvas.getContext("2d");
+        this.gc = self.canvas.getContext("2d");
 
-        gc.clearRect(0, 0, self.canvas.width, self.canvas.height);
-
-        gc.drawImage(img, 0, 0, self.canvas.width, self.canvas.height);
+        this.preImg.show();
 
     },
     animate: function () {
         var gc = this.gc;
+        var self = this;
+        self.preImg.hide();
+
+        gc.clearRect(0, 0, self.canvas.width, self.canvas.height);
+        gc.drawImage(this.img, 0, 0, self.canvas.width, self.canvas.height);
+
         gc.lineCap = "round";
         gc.lineJoin = "round";
         gc.globalCompositeOperation = "destination-out";
@@ -221,12 +231,13 @@ define("canvas-glass", {
                     y = h / 4 + h / 2 * Math.random();
                 gc.lineTo(x, y);
                 gc.stroke();
-                requestAnimationFrame(draw);
+                setTimeout(draw, 20);
             } else {
                 $(self.canvas).animate({
                     opacity: 0
                 }, 800, "ease-in", function () {
-                    self.canvas.parentNode.removeChild(self.canvas);
+                    $(self.canvas).remove();
+                    self.preImg.remove();
                     self.canvas = null;
                 });
 
@@ -257,6 +268,42 @@ define("fly", {
     }
 });
 
+define("rollIn" , {
+    origin:{
+        "-webkit-transform":"rotate(0) scale(0)"
+    },
+    properties:{
+        "rotate":"360deg",
+        "scale":"1"
+    },
+    duration: 600
+});
+
+define("scaleIn" , {
+    origin:{
+        "-webkit-transform":"scale(2)",
+        opacity:0.3
+    },
+    properties:{
+        "scale":"1",
+        opacity:1
+    },
+    duration: 600,
+    easing:"ease-in"
+});
+
+define("scaleOut" , {
+    origin:{
+        "-webkit-transform":"scale(0.7)",
+        opacity:0.3
+    },
+    properties:{
+        "scale":"1",
+        opacity:1
+    },
+    duration: 600,
+    easing:"ease-in"
+});
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
@@ -357,7 +404,7 @@ exports.create = function (template) {
                 var src = $(item).attr(ATTR_SRC);
                 var image = new Image();
                 image.src = src;
-                image.onload = image.onload = function () {
+                image.onload = image.onerror = function () {
                     imageToLoad--;
                     if (imageToLoad <= 0) {
                         self.doReady(cb);
@@ -463,7 +510,7 @@ exports.create = function () {
                 playPageLoading();
                 stack[index + 1].prepare(stopPageLoading);
             }
-        }else{
+        } else {
             stopPageLoading();
             arrow.remove();
         }
@@ -508,7 +555,7 @@ exports.create = function () {
         end: function () {
             var self = this;
             maxZ++;
-            if (!((direction == 0 && this.isNextReady()) || (direction == 1 && this.isPrevReady()))) {
+            if (direction == -1 || !((direction == 0 && this.isNextReady()) || (direction == 1 && this.isPrevReady()))) {
                 return;
             }
 
@@ -557,8 +604,11 @@ exports.create = function () {
         isPrevReady: function () {
             return current > 0 && stack[current - 1].ready;
         },
-        size:function(){
+        size: function () {
             return stack.length
+        },
+        wrong: function () {
+            direction = -1;
         }
     };
 };
@@ -3112,7 +3162,6 @@ module.exports = function (templateId, options) {
 
        stopLoading();
 
-
         //绑定
         var hammer = new Hammer(template.get(0));
 //        hammer.get("pan").set({"direction": Hammer.DIRECTION_VERTICAL});
@@ -3123,6 +3172,9 @@ module.exports = function (templateId, options) {
         hammer.on("panup", function (e) {
             PageManager.up(e.distance);
         });
+        hammer.on("panleft panright",function(){
+            PageManager.wrong();
+        })
         hammer.on("panend", function () {
             PageManager.end();
         });

@@ -99,6 +99,7 @@
 
 .so-item.full {
     height: 100%;
+    width:100%;
 }
 .so-item.abs{
     position: absolute;
