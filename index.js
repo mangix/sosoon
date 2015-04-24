@@ -379,6 +379,12 @@ exports.create = function (template) {
     var container = $(template);
     var items = container.find(".so-item");
     var images = items.filter("[type=img]");
+    var video = items.find("video");
+    if(video.size()){
+        video = video[0];
+    }else{
+        video = null;
+    }
 
     var imageToLoad = images.size();
 
@@ -396,11 +402,19 @@ exports.create = function (template) {
             chains.forEach(function (chain) {
                 chain.next();
             });
+            if (video) {
+                video.play();
+                window.STOP_AUDIO();
+            }
         },
         exit: function () {
             chains.forEach(function (chain) {
                 chain.origin();
             });
+            if(video){
+                video.pause();
+                window.PLAY_AUDIO();
+            }
         },
         prepare: function (cb) {
             if (preparing) {
@@ -426,9 +440,8 @@ exports.create = function (template) {
 
                 //如果animation是static,就直接插入dom
                 if ($(item).attr(ATTR_AUTO) != "false") {
-                    $('<img class="so-img '+($(item).attr(ATTR_CLS) || "")+'" src="' + src + '" />').appendTo(item);
+                    $('<img class="so-img ' + ($(item).attr(ATTR_CLS) || "") + '" src="' + src + '" />').appendTo(item);
                 }
-
             });
         },
 
@@ -3132,6 +3145,8 @@ var PageManager = require("./pagem").create();
 var PAGE_CLASS = ".so-page";
 var share = require('./share');
 
+var audio;
+
 module.exports = function (templateId, options) {
     var template = $($(templateId).text());
 
@@ -3143,7 +3158,7 @@ module.exports = function (templateId, options) {
 
     playLoading();
 
-    if(options.audio){
+    if (options.audio) {
         initAudio(options.audio);
     }
 
@@ -3151,16 +3166,16 @@ module.exports = function (templateId, options) {
     if (!PageManager.hasPage()) {
         return;
     }
-    $(document.body).on("touchstart touchmove touchend",function(e){
+    $(document.body).on("touchstart touchmove touchend", function (e) {
         e.preventDefault();
     });
-    if(options.share){
+    if (options.share) {
         share.config(options.share);
     }
 
     PageManager.start(function () {
 
-       stopLoading();
+        stopLoading();
 
         //绑定
         var hammer = new Hammer(template.get(0));
@@ -3172,28 +3187,38 @@ module.exports = function (templateId, options) {
         hammer.on("panup", function (e) {
             PageManager.up(e.distance);
         });
-        hammer.on("panleft panright",function(){
+        hammer.on("panleft panright", function () {
             PageManager.wrong();
-        })
+        });
         hammer.on("panend", function () {
             PageManager.end();
         });
 
 
-
     });
+};
+
+window.STOP_AUDIO = function () {
+    if (audio) {
+        audio.pause();
+    }
+};
+window.PLAY_AUDIO = function (){
+    if (audio) {
+        audio.play();
+    }
 };
 
 //初始化背景音乐
 function initAudio(url) {
-    var audio = $('<audio loop src="'+url+'"></audio>').appendTo(document.body).get(0);
+    audio = $('<audio loop src="' + url + '"></audio>').appendTo(document.body).get(0);
     var btn = $('<div class="so-music play"></div>').appendTo(document.body);
     audio.play();
-    btn.on("click",function(){
-        if(!audio.paused){
+    btn.on("click", function () {
+        if (!audio.paused) {
             audio.pause();
             btn.removeClass('play');
-        }else{
+        } else {
             audio.play();
             btn.addClass('play');
         }
