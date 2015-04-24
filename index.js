@@ -304,6 +304,19 @@ define("scaleOut" , {
     duration: 600,
     easing:"ease-in"
 });
+
+define("bfi",{
+    origin:{
+        top:"60%",
+        opacity:0
+    },
+    properties:{
+        "top":'30%',
+        opacity:1
+    },
+    duration:1500,
+    easing:"ease-out"
+});
 },{}],2:[function(require,module,exports){
 var Chain = function () {
     this.stack = [];
@@ -623,11 +636,9 @@ var config = {
 };
 
 var action = function(){
-    alert('config')
+    return;
     WeixinJSBridge.on('menu:share:appmessage', function(argv){
-        alert('share')
         WeixinJSBridge.invoke('sendAppMessage',config,function(res) {
-            alert(res);
         })
     });
     WeixinJSBridge.on('menu:share:timeline', function(argv){
