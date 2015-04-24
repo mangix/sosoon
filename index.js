@@ -623,8 +623,12 @@ var config = {
 };
 
 var action = function(){
+    alert('config')
     WeixinJSBridge.on('menu:share:appmessage', function(argv){
-        WeixinJSBridge.invoke('sendAppMessage',config,function(res) { })
+        alert('share')
+        WeixinJSBridge.invoke('sendAppMessage',config,function(res) {
+            alert(res);
+        })
     });
     WeixinJSBridge.on('menu:share:timeline', function(argv){
         WeixinJSBridge.invoke('shareTimeline',config,function(res) { });
@@ -3140,7 +3144,6 @@ module.exports = function (templateId, options) {
         e.preventDefault();
     });
     if(options.share){
-        alert('config,');
         share.config(options.share);
     }
 
