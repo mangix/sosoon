@@ -231,7 +231,7 @@ define("canvas-glass", {
                     y = h / 4 + h / 2 * Math.random();
                 gc.lineTo(x, y);
                 gc.stroke();
-                setTimeout(draw, 20);
+                setTimeout(draw, 100);
             } else {
                 $(self.canvas).animate({
                     opacity: 0
@@ -374,6 +374,7 @@ var ATTR_CLS = 'cls';
 
 var Chain = require("./chain");
 var animations = require("./animation");
+var PageMotion = require("./page_motion");
 
 exports.create = function (template) {
     var container = $(template);
@@ -391,6 +392,11 @@ exports.create = function (template) {
     var chains = findChain(items);
 
     var preparing = false;
+
+    var initMotion = container.attr("init");
+    if(initMotion && PageMotion[initMotion]){
+        PageMotion[initMotion].init(container, images , chains);
+    }
 
     return {
         el: container,
@@ -495,7 +501,46 @@ function findChain(items) {
     }
     return results;
 }
-},{"./animation":1,"./chain":2}],4:[function(require,module,exports){
+},{"./animation":1,"./chain":2,"./page_motion":4}],4:[function(require,module,exports){
+var Hammer = require("hammerjs");
+
+module.exports = {
+    "photobook": {
+        init: function (el, images, chains) {
+            var hammer = new Hammer(el.get(0));
+            var parent = images.parent();
+            var length = images.length,
+                current = 0;
+            var chain = chains[0];
+
+            var isPan = false;
+
+            hammer.on("panleft panright", function () {
+                if(isPan){
+                    return;
+                }
+                isPan = true;
+                //划掉images
+                images.eq(length - current -1).animate({
+                    opacity: 0
+                }, 1000, "easing-out", function () {
+                    parent.prepend(this);
+                    current = (current + 1) % length;
+                    $(this).css("opacity","1");
+
+                    if(chain){
+                        var last = chain.stack.pop();
+                        chain.stack.unshift(last);
+                        chain.next();
+                    }
+
+                    isPan = false;
+                });
+            });
+        }
+    }
+};
+},{"hammerjs":7}],5:[function(require,module,exports){
 var MAX_PAGE = 100;
 
 var maxZ = MAX_PAGE;
@@ -639,7 +684,7 @@ exports.create = function () {
     };
 };
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 //for weixin share'
 
 var config = {
@@ -672,7 +717,7 @@ exports.config = function(cfg){
         }
     }
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*! Hammer.JS - v2.0.4 - 2014-09-28
  * http://hammerjs.github.io/
  *
@@ -3238,4 +3283,4 @@ function stopLoading() {
 
 
 
-},{"./page":3,"./pagem":4,"./share":5,"hammerjs":6}]},{},[]);
+},{"./page":3,"./pagem":5,"./share":6,"hammerjs":7}]},{},[]);
