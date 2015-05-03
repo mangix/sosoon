@@ -515,18 +515,30 @@ module.exports = {
 
             var isPan = false;
 
-            hammer.on("panleft panright", function () {
+            function motion(dir) {
                 if(isPan){
                     return;
                 }
                 isPan = true;
-                //划掉images
-                images.eq(length - current -1).animate({
+                var property = {
                     opacity: 0
-                }, 1000, "easing-out", function () {
+                };
+
+                if(dir == 1){
+                    //left
+                    property.left= "-100%";
+                }else{
+                    property.left = "100%";
+                }
+
+                    //划掉images
+                images.eq(length - current -1).animate(property, 1000, "easing-out", function () {
                     parent.prepend(this);
                     current = (current + 1) % length;
-                    $(this).css("opacity","1");
+                    $(this).css({
+                        opacity:1,
+                        left:0
+                    });
 
                     if(chain){
                         var last = chain.stack.pop();
@@ -536,7 +548,17 @@ module.exports = {
 
                     isPan = false;
                 });
+            }
+
+            hammer.on("panleft", function () {
+                motion(1);
             });
+            hammer.on("panright", function () {
+                motion(0);
+            });
+
+            //init arrow left right
+            $('<div class="so-fly-left"></div><div class="so-fly-right"></div>').appendTo(el);
         }
     }
 };
